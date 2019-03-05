@@ -7,24 +7,20 @@
 //https://content.guardianapis.com/search?api-key=c7a817b8-5671-4723-9628-eb500351d875
 
 //default source 
-
+var articles = []
 $(document).ready(function () {
   getNewsapi();
-  $("#newsapi").click(function(){
+  $("#newsapi").click(function () {
     getNewsapi();
   });
-  $("#guardianapis").click(function(){
+  $("#guardianapis").click(function () {
     getGuardianapis();
   });
-
-  $("#popUpAction").click(function(){
-    // $("#popUp").toggleClass("hidden")
-    $("#popUp").toggleClass("loader")
-    $("#popUp").toggleClass("container")
-
-
+  $(".closePopUp").click(function () {
+    $("#popUp").addClass("loader")
+    $("#popUp").addClass("hidden")
+    $("#article_detail").addClass("container")
   })
-
 
 });
 
@@ -42,8 +38,9 @@ function getNewsapi() {
       $("#main_loader").hide();
       response.json().then(data => {
         data.articles.length = 7
+        articles = data.articles
         console.log(data.articles)
-        data.articles.forEach(element => {
+        data.articles.forEach((element, i) => {
           let date = element.publishedAt.toString().substring(0, 10)
           $("#main").append(`
             <article class="article">
@@ -51,7 +48,7 @@ function getNewsapi() {
               <img src="${element.urlToImage}" alt="" />
             </section>
             <section class="articleContent">
-                <a href="#"><h3>${element.title}</h3></a>
+                <a id="article_button_${i}" href="#"><h3>${element.title}</h3></a>
                 <h6>${element.description}</h6>
             </section>
             <section class="impressions">
@@ -61,9 +58,35 @@ function getNewsapi() {
           </article>
         `)
         });
+        articles.forEach((elem, i) => {
+          $("#article_button_" + i).click(function () {
+            openDetail(elem.title, elem.content, elem.url);
+          })
+        })
+
+
       });
     });
 }
+
+function openDetail(title, content, url) {
+  $("#popUp").removeClass("loader")
+  $("#popUp").removeClass("hidden")
+  $("#article_detail").removeClass("container")
+  $("#detail_title").html(title)
+  $("#detail_content").html(content)
+  $("#article_detail").html(`
+    <h1 id="detail_title">
+    ${title}
+    </h1>
+    <p id="detail_content">
+        ${content}
+    </p>
+    <a href="${url}" class="popUpAction" target="_blank">Read more from source</a>
+  `)
+
+}
+
 function getGuardianapis() {
   // https://content.guardianapis.com/search
   // ?api-key=c7a817b8-5671-4723-9628-eb500351d875
@@ -77,6 +100,7 @@ function getGuardianapis() {
       $("#main_loader").hide();
       response.json().then(data => {
         data.response.results.length = 5
+        articles = data.response.results
         data.response.results.forEach(element => {
           $("#main").append(`
             <article class="article">
@@ -94,6 +118,11 @@ function getGuardianapis() {
           </article>
         `)
         });
+        articles.forEach((elem, i) => {
+          $("#article_button_" + i).click(function () {
+            openDetail(elem.webTitle, elem.sectionName, elem.webUrl);
+          })
+        })
 
       });
     });
